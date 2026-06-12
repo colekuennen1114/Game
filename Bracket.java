@@ -42,6 +42,8 @@ public class Bracket
 
         MatchResult m5 = play(scan, myRobot, myTeam, m1.winner, m2.winner, "Upper Round 2");
         MatchResult m6 = play(scan, myRobot, myTeam, m3.winner, m4.winner, "Upper Round 2");
+        announceSimulationBreak(m5, m6);
+
         MatchResult m7 = play(scan, myRobot, myTeam, m1.loser, m4.loser, "Lower Round 1 - Elimination");
         if (m7.loser.player)
         {
@@ -54,6 +56,7 @@ public class Bracket
             return false;
         }
 
+        announceNextPlayerMatch(m5, m6, "Upper Final");
         MatchResult m9 = play(scan, myRobot, myTeam, m5.winner, m6.winner, "Upper Final");
         MatchResult m10 = play(scan, myRobot, myTeam, m5.loser, m8.winner, "Lower Round 2 - Elimination");
         if (m10.loser.player)
@@ -161,8 +164,44 @@ public class Bracket
 
         Alliance loser = winner == first ? second : first;
         System.out.println("Alliance " + winner.seed + " advances.");
+
+        if (winner.player)
+        {
+            System.out.println("Your alliance is still alive in the playoffs.");
+        }
+        else if (loser.player)
+        {
+            System.out.println("Your alliance lost this match.");
+        }
+
         System.out.println();
         return new MatchResult(winner, loser);
+    }
+
+    private static void announceSimulationBreak(MatchResult first, MatchResult second)
+    {
+        if (first.winner.player || second.winner.player)
+        {
+            System.out.println("================================");
+            System.out.println("       BRACKET UPDATE           ");
+            System.out.println("================================");
+            System.out.println("You won your first two upper-bracket matches.");
+            System.out.println("The remaining lower-bracket matches will now be simulated.");
+            System.out.println("Your next playable match is the Upper Final.");
+            System.out.println("================================");
+            System.out.println();
+        }
+    }
+
+    private static void announceNextPlayerMatch(MatchResult first, MatchResult second,
+        String roundName)
+    {
+        if (first.winner.player || second.winner.player)
+        {
+            System.out.println("AI bracket simulation complete.");
+            System.out.println("Starting your next match: " + roundName + ".");
+            System.out.println();
+        }
     }
 
     private static Alliance simulateAI(Alliance first, Alliance second)

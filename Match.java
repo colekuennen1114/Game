@@ -56,7 +56,7 @@ public class Match
             switch (choice)
             {
                 case 1:
-                    playerScore = shoot(playerScore, myRobot);
+                    playerScore = shoot(playerScore, myRobot, myTeam);
                     break;
 
                 case 2:
@@ -64,11 +64,11 @@ public class Match
                     break;
 
                 case 3:
-                    enemyScore = defense(enemyScore, enemyBase);
+                    enemyScore = defense(enemyScore, enemyBase, myTeam);
                     break;
 
                 case 4:
-                    playerScore = intake(playerScore, myRobot);
+                    playerScore = intake(playerScore, myRobot, myTeam);
                     break;
             }
         }
@@ -94,17 +94,20 @@ public class Match
         return playerScore > enemyScore;
     }
 
-    private static int shoot(int currentScore, Builder myRobot)
+    private static int shoot(int currentScore, Builder myRobot, Bot[] myTeam)
     {
         int shooterScore = myRobot.getShooter().getAddScore();
         int robotRating = myRobot.getScore();
+        int teammateSupport = getTeammateTotal(myTeam);
 
         double missChance = 0.20;
 
         if (Math.random() > missChance)
         {
-            int min  = (int)(robotRating * 0.12 + shooterScore * 0.10);
-            int max  = (int)(robotRating * 0.20 + shooterScore * 0.20);
+            int min  = (int)(robotRating * 0.10 + shooterScore * 0.10
+                + teammateSupport * 0.04);
+            int max  = (int)(robotRating * 0.18 + shooterScore * 0.20
+                + teammateSupport * 0.08);
             int gain = min + (int)(Math.random() * (max - min + 1));
 
             currentScore += gain;
@@ -121,10 +124,9 @@ public class Match
 
     private static int pass(int currentScore, Bot[] myTeam)
     {
-        int avgTeamScore = (myTeam[0].getAvgScore() + myTeam[1].getAvgScore()) / 2;
-
-        int min  = (int)(avgTeamScore * 0.08);
-        int max  = (int)(avgTeamScore * 0.16);
+        int teammateTotal = getTeammateTotal(myTeam);
+        int min  = (int)(teammateTotal * 0.12);
+        int max  = (int)(teammateTotal * 0.22);
         int gain = min + (int)(Math.random() * (max - min + 1));
 
         currentScore += gain;
@@ -134,12 +136,15 @@ public class Match
         return currentScore;
     }
 
-    private static int defense(int enemyScore, int enemyBase)
+    private static int defense(int enemyScore, int enemyBase, Bot[] myTeam)
     {
-        if (Math.random() < 0.60)
+        int teammateTotal = getTeammateTotal(myTeam);
+        double successChance = Math.min(0.80, 0.50 + teammateTotal / 1500.0);
+
+        if (Math.random() < successChance)
         {
-            int min = (int)(enemyBase * 0.04);
-            int max = (int)(enemyBase * 0.08);
+            int min = (int)(enemyBase * 0.03 + teammateTotal * 0.03);
+            int max = (int)(enemyBase * 0.06 + teammateTotal * 0.06);
             int reduction = min + (int)(Math.random() * (max - min + 1));
 
             enemyScore -= reduction;
@@ -163,7 +168,7 @@ public class Match
         return enemyScore;
     }
 
-    private static int intake(int currentScore, Builder myRobot)
+    private static int intake(int currentScore, Builder myRobot, Bot[] myTeam)
     {
         int indexerScore = myRobot.getIndexer().getAddScore();
 
@@ -172,8 +177,11 @@ public class Match
 
         int intakeScore = myRobot.getIntake().getAddScore();
         int collectionPower = indexerScore + intakeScore;
-        int min = (int)(collectionPower * 0.18 * speedBonus);
-        int max = (int)(collectionPower * 0.32 * speedBonus);
+        int teammateSupport = getTeammateTotal(myTeam);
+        int min = (int)(collectionPower * 0.16 * speedBonus
+            + teammateSupport * 0.03);
+        int max = (int)(collectionPower * 0.28 * speedBonus
+            + teammateSupport * 0.06);
         int gain = min + (int)(Math.random() * (max - min + 1));
 
         currentScore += gain;
@@ -181,5 +189,10 @@ public class Match
         System.out.println("INTAKE! Indexed " + gain + " pts.");
 
         return currentScore;
+    }
+
+    private static int getTeammateTotal(Bot[] myTeam)
+    {
+        return myTeam[0].getAvgScore() + myTeam[1].getAvgScore();
     }
 }
