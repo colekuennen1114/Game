@@ -1,275 +1,236 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
 public class Bracket
 {
-    private static Builder pRobot;
-    private static Bot[] pTeam;
-    private static int pIdx;
-    private static Bot[][] alliances;
-    private static String[] names;
-    private static int playerLosses;
-
-    public static boolean runBracket(java.util.Scanner scan, Builder myRobot, Bot[] myTeam, Bot[] bots)
+    private static class Alliance
     {
-        pRobot = myRobot;
-        pTeam = myTeam;
-        pIdx = myRobot.getAlliance() - 1;
-        playerLosses = 0;
+        private int seed;
+        private Bot[] bots;
+        private boolean player;
 
-        alliances = new Bot[8][];
-        names = new String[8];
-
-        for (int i = 0; i < 8; i++)
+        Alliance(int allianceSeed, Bot[] allianceBots, boolean isPlayer)
         {
-            if (i == pIdx)
-            {
-                names[i] = "YOUR ALLIANCE";
-            }
-            else
-            {
-                alliances[i] = generateAIAlliance(bots, i + 1);
-                names[i] = alliances[i][0].getName() + " / "
-                    + alliances[i][1].getName() + " / "
-                    + alliances[i][2].getName();
-            }
+            seed = allianceSeed;
+            bots = allianceBots;
+            player = isPlayer;
         }
-
-        System.out.println("================================");
-        System.out.println("        BRACKET ALLIANCES       ");
-        System.out.println("================================");
-
-        for (int i = 0; i < 8; i++)
-        {
-            String mark = "";
-
-            if (i == pIdx)
-            {
-                mark = "  ◄ YOU";
-            }
-
-            System.out.println("Alliance " + (i + 1) + ": " + names[i] + mark);
-        }
-
-        System.out.println("================================");
-        System.out.println();
-
-        int round = 1;
-
-        while (playerLosses < 2 && round <= 6)
-        {
-            int opponent = chooseOpponent();
-
-            System.out.println("================================");
-            System.out.println("           PLAYOFF MATCH        ");
-            System.out.println("================================");
-
-            if (playerLosses == 0)
-            {
-                System.out.println("Bracket: Upper Bracket");
-                System.out.println("You have 0 losses.");
-                System.out.println("If you lose, you will move to the lower bracket.");
-            }
-            else
-            {
-                System.out.println("Bracket: Lower Bracket");
-                System.out.println("You have 1 loss.");
-                System.out.println("THIS IS AN ELIMINATION MATCH.");
-                System.out.println("If you lose, your playoffs are over.");
-            }
-
-            System.out.println();
-            System.out.println("Alliance " + (pIdx + 1) + " vs Alliance " + (opponent + 1));
-            System.out.println("Opponent: " + names[opponent]);
-            System.out.println("================================");
-            System.out.println();
-
-            boolean playerWon = Match.playMatch(scan, pRobot, pTeam, alliances[opponent]);
-
-            if (playerWon)
-            {
-                System.out.println(">> YOUR ALLIANCE WINS!");
-                System.out.println(">> Current losses: " + playerLosses);
-                System.out.println(">> You advance to the next playoff match.");
-                System.out.println();
-            }
-            else
-            {
-                playerLosses++;
-
-                System.out.println(">> YOUR ALLIANCE LOST.");
-                System.out.println(">> Current losses: " + playerLosses);
-
-                if (playerLosses == 1)
-                {
-                    System.out.println(">> You are NOT eliminated.");
-                    System.out.println(">> You move to the LOWER BRACKET.");
-                    System.out.println(">> Keep playing.");
-                }
-                else
-                {
-                    System.out.println(">> You lost twice.");
-                    System.out.println(">> You are ELIMINATED.");
-                    System.out.println();
-                    return false;
-                }
-
-                System.out.println();
-            }
-
-            round++;
-        }
-
-        if (playerLosses < 2)
-        {
-            System.out.println("================================");
-            System.out.println("       CHAMPIONSHIP MATCH       ");
-            System.out.println("================================");
-            System.out.println("You made it to the championship!");
-            System.out.println("Win this match to become champion.");
-            System.out.println("================================");
-            System.out.println();
-
-            int finalOpponent = chooseOpponent();
-
-            boolean wonFinal = Match.playMatch(scan, pRobot, pTeam, alliances[finalOpponent]);
-
-            if (wonFinal)
-            {
-                System.out.println("YOU ARE THE CHAMPION!");
-                return true;
-            }
-            else
-            {
-                playerLosses++;
-
-                if (playerLosses >= 2)
-                {
-                    System.out.println("You lost in the championship and were eliminated.");
-                    return false;
-                }
-                else
-                {
-                    System.out.println("You lost the championship match.");
-                    return false;
-                }
-            }
-        }
-
-        return false;
     }
 
-    private static int chooseOpponent()
+    private static class MatchResult
     {
-        int opponent = pIdx;
+        private Alliance winner;
+        private Alliance loser;
 
-        while (opponent == pIdx)
+        MatchResult(Alliance matchWinner, Alliance matchLoser)
         {
-            opponent = (int)(Math.random() * 8);
+            winner = matchWinner;
+            loser = matchLoser;
         }
-
-        return opponent;
     }
 
-    private static Bot[] generateAIAlliance(Bot[] bots, int allianceNumber)
+    public static boolean runBracket(Scanner scan, Builder myRobot, Bot[] myTeam, Bot[] bots)
+    {
+        Alliance[] seeds = createAlliances(myRobot, myTeam, bots);
+        printAlliances(seeds);
+
+        MatchResult m1 = play(scan, myRobot, myTeam, seeds[0], seeds[7], "Upper Round 1");
+        MatchResult m2 = play(scan, myRobot, myTeam, seeds[3], seeds[4], "Upper Round 1");
+        MatchResult m3 = play(scan, myRobot, myTeam, seeds[1], seeds[6], "Upper Round 1");
+        MatchResult m4 = play(scan, myRobot, myTeam, seeds[2], seeds[5], "Upper Round 1");
+
+        MatchResult m5 = play(scan, myRobot, myTeam, m1.winner, m2.winner, "Upper Round 2");
+        MatchResult m6 = play(scan, myRobot, myTeam, m3.winner, m4.winner, "Upper Round 2");
+        MatchResult m7 = play(scan, myRobot, myTeam, m1.loser, m4.loser, "Lower Round 1 - Elimination");
+        if (m7.loser.player)
+        {
+            return false;
+        }
+
+        MatchResult m8 = play(scan, myRobot, myTeam, m2.loser, m3.loser, "Lower Round 1 - Elimination");
+        if (m8.loser.player)
+        {
+            return false;
+        }
+
+        MatchResult m9 = play(scan, myRobot, myTeam, m5.winner, m6.winner, "Upper Final");
+        MatchResult m10 = play(scan, myRobot, myTeam, m5.loser, m8.winner, "Lower Round 2 - Elimination");
+        if (m10.loser.player)
+        {
+            return false;
+        }
+
+        MatchResult m11 = play(scan, myRobot, myTeam, m6.loser, m7.winner, "Lower Round 2 - Elimination");
+        if (m11.loser.player)
+        {
+            return false;
+        }
+
+        MatchResult m12 = play(scan, myRobot, myTeam, m10.winner, m11.winner, "Lower Round 3 - Elimination");
+        if (m12.loser.player)
+        {
+            return false;
+        }
+
+        MatchResult m13 = play(scan, myRobot, myTeam, m9.loser, m12.winner, "Lower Final - Elimination");
+        if (m13.loser.player)
+        {
+            return false;
+        }
+
+        return playFinals(scan, myRobot, myTeam, m9.winner, m13.winner);
+    }
+
+    private static Alliance[] createAlliances(Builder myRobot, Bot[] myTeam, Bot[] bots)
+    {
+        Alliance[] seeds = new Alliance[8];
+        List<Bot> available = new ArrayList<Bot>();
+
+        for (Bot bot : bots)
+        {
+            if (bot != myTeam[0] && bot != myTeam[1])
+            {
+                available.add(bot);
+            }
+        }
+
+        for (int seed = 1; seed <= 8; seed++)
+        {
+            if (seed == myRobot.getAlliance())
+            {
+                seeds[seed - 1] = new Alliance(seed, myTeam, true);
+            }
+            else
+            {
+                seeds[seed - 1] = new Alliance(seed, generateAIAlliance(available, seed), false);
+            }
+        }
+
+        return seeds;
+    }
+
+    private static Bot[] generateAIAlliance(List<Bot> available, int seed)
     {
         Bot[] team = new Bot[3];
+        int target = 280 - ((seed - 1) * 30);
 
-        int min = getMinIndexForAlliance(allianceNumber);
-        int max = getMaxIndexForAlliance(allianceNumber);
-
-        int count = 0;
-
-        while (count < team.length)
+        for (int i = 0; i < team.length; i++)
         {
-            int index = min + (int)(Math.random() * (max - min + 1));
-            Bot selected = bots[index];
+            int bestIndex = 0;
+            int bestDistance = Integer.MAX_VALUE;
 
-            if (!alreadyPicked(team, selected, count))
+            for (int j = 0; j < available.size(); j++)
             {
-                team[count] = selected;
-                count++;
+                int distance = Math.abs(available.get(j).getAvgScore() - target);
+
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    bestIndex = j;
+                }
             }
+
+            team[i] = available.remove(bestIndex);
+            target -= 12;
         }
 
         return team;
     }
 
-    private static boolean alreadyPicked(Bot[] team, Bot bot, int filledSpots)
+    private static MatchResult play(Scanner scan, Builder myRobot, Bot[] myTeam,
+        Alliance first, Alliance second, String roundName)
     {
-        for (int i = 0; i < filledSpots; i++)
+        System.out.println("================================");
+        System.out.println(" " + roundName);
+        System.out.println(" Alliance " + first.seed + " vs Alliance " + second.seed);
+        System.out.println("================================");
+
+        Alliance winner;
+
+        if (first.player || second.player)
         {
-            if (team[i] == bot)
+            Alliance opponent = first.player ? second : first;
+            boolean playerWon = Match.playMatch(scan, myRobot, myTeam, opponent.bots);
+            winner = playerWon ? (first.player ? first : second) : opponent;
+        }
+        else
+        {
+            winner = simulateAI(first, second);
+        }
+
+        Alliance loser = winner == first ? second : first;
+        System.out.println("Alliance " + winner.seed + " advances.");
+        System.out.println();
+        return new MatchResult(winner, loser);
+    }
+
+    private static Alliance simulateAI(Alliance first, Alliance second)
+    {
+        int firstScore = allianceScore(first.bots);
+        int secondScore = allianceScore(second.bots);
+
+        Alliance winner = firstScore >= secondScore ? first : second;
+        System.out.println("AI result: Alliance " + first.seed + " " + firstScore
+            + " - Alliance " + second.seed + " " + secondScore);
+        return winner;
+    }
+
+    private static int allianceScore(Bot[] bots)
+    {
+        int base = bots[0].getAvgScore() + bots[1].getAvgScore() + bots[2].getAvgScore();
+        return base + (int)(Math.random() * 61) - 30;
+    }
+
+    private static boolean playFinals(Scanner scan, Builder myRobot, Bot[] myTeam,
+        Alliance upperChampion, Alliance lowerChampion)
+    {
+        int upperWins = 0;
+        int lowerWins = 0;
+        int matchNumber = 1;
+
+        while (upperWins < 2 && lowerWins < 2)
+        {
+            MatchResult result = play(scan, myRobot, myTeam, upperChampion,
+                lowerChampion, "Championship Final " + matchNumber);
+
+            if (result.winner == upperChampion)
             {
-                return true;
+                upperWins++;
             }
+            else
+            {
+                lowerWins++;
+            }
+
+            System.out.println("Finals series: Alliance " + upperChampion.seed + " " + upperWins
+                + " - Alliance " + lowerChampion.seed + " " + lowerWins);
+            System.out.println();
+            matchNumber++;
         }
 
-        return false;
+        Alliance champion = upperWins == 2 ? upperChampion : lowerChampion;
+        return champion.player;
     }
 
-    private static int getMinIndexForAlliance(int allianceNumber)
+    private static void printAlliances(Alliance[] seeds)
     {
-        if (allianceNumber == 1)
-        {
-            return 0;
-        }
-        else if (allianceNumber == 2)
-        {
-            return 5;
-        }
-        else if (allianceNumber == 3)
-        {
-            return 10;
-        }
-        else if (allianceNumber == 4)
-        {
-            return 15;
-        }
-        else if (allianceNumber == 5)
-        {
-            return 22;
-        }
-        else if (allianceNumber == 6)
-        {
-            return 30;
-        }
-        else if (allianceNumber == 7)
-        {
-            return 40;
-        }
-        else
-        {
-            return 50;
-        }
-    }
+        System.out.println("================================");
+        System.out.println("        BRACKET ALLIANCES       ");
+        System.out.println("================================");
 
-    private static int getMaxIndexForAlliance(int allianceNumber)
-    {
-        if (allianceNumber == 1)
+        for (Alliance alliance : seeds)
         {
-            return 24;
+            String label = alliance.player
+                ? "YOUR ALLIANCE"
+                : alliance.bots[0].getName() + " / "
+                    + alliance.bots[1].getName() + " / "
+                    + alliance.bots[2].getName();
+
+            System.out.println("Alliance " + alliance.seed + ": " + label);
         }
-        else if (allianceNumber == 2)
-        {
-            return 30;
-        }
-        else if (allianceNumber == 3)
-        {
-            return 38;
-        }
-        else if (allianceNumber == 4)
-        {
-            return 45;
-        }
-        else if (allianceNumber == 5)
-        {
-            return 55;
-        }
-        else if (allianceNumber == 6)
-        {
-            return 65;
-        }
-        else
-        {
-            return 74;
-        }
+
+        System.out.println("================================");
+        System.out.println();
     }
 }

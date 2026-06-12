@@ -83,28 +83,20 @@ public class Builder
         }
 
         System.out.println();
-        System.out.println("Enter choice:");
 
-        int choice = -1;
-
-        while (choice < 0 || choice >= components.length || components[choice].getCost() > budget)
+        while (true)
         {
-            choice = scan.nextInt();
+            int choice = Input.readInt(scan, 0, components.length - 1, "Enter choice:");
 
-            if (choice < 0 || choice >= components.length)
+            if (components[choice].getCost() <= budget)
             {
-                System.out.println("Invalid choice. Try again:");
+                System.out.println("Selected: " + components[choice].getType());
+                System.out.println();
+                return components[choice];
             }
-            else if (components[choice].getCost() > budget)
-            {
-                System.out.println("Can't afford that! Try again:");
-            }
+
+            System.out.println("Can't afford that! Try again:");
         }
-
-        System.out.println("Selected: " + components[choice].getType());
-        System.out.println();
-
-        return components[choice];
     }
 
     private static Component chooseIndexer(Scanner scan, Component[] indexers, int budget, Component shooter)
@@ -138,21 +130,12 @@ public class Builder
         }
 
         System.out.println();
-        System.out.println("Enter choice:");
 
-        int choice = -1;
-
-        while (choice < 0 || choice >= indexers.length
-            || indexers[choice].getCost() > budget
-            || !isCompatible(shooter, indexers[choice]))
+        while (true)
         {
-            choice = scan.nextInt();
+            int choice = Input.readInt(scan, 0, indexers.length - 1, "Enter choice:");
 
-            if (choice < 0 || choice >= indexers.length)
-            {
-                System.out.println("Invalid choice. Try again:");
-            }
-            else if (indexers[choice].getCost() > budget)
+            if (indexers[choice].getCost() > budget)
             {
                 System.out.println("Can't afford that! Try again:");
             }
@@ -160,12 +143,13 @@ public class Builder
             {
                 System.out.println("That indexer does not work with your shooter. Try again:");
             }
+            else
+            {
+                System.out.println("Selected: " + indexers[choice].getType());
+                System.out.println();
+                return indexers[choice];
+            }
         }
-
-        System.out.println("Selected: " + indexers[choice].getType());
-        System.out.println();
-
-        return indexers[choice];
     }
 
     private static boolean isCompatible(Component shooter, Component indexer)
@@ -202,28 +186,20 @@ public class Builder
         }
 
         System.out.println();
-        System.out.println("Enter alliance number (1-8):");
 
-        int choice = -1;
-
-        while (choice < 1 || choice > 8 || ALLIANCE_COSTS[choice - 1] > budget)
+        while (true)
         {
-            choice = scan.nextInt();
+            int choice = Input.readInt(scan, 1, 8, "Enter alliance number (1-8):");
 
-            if (choice < 1 || choice > 8)
+            if (ALLIANCE_COSTS[choice - 1] <= budget)
             {
-                System.out.println("Invalid choice. Enter 1-8:");
+                System.out.println("Selected: Alliance " + choice);
+                System.out.println();
+                return choice;
             }
-            else if (ALLIANCE_COSTS[choice - 1] > budget)
-            {
-                System.out.println("Can't afford that alliance! Try again:");
-            }
+
+            System.out.println("Can't afford that alliance! Try again:");
         }
-
-        System.out.println("Selected: Alliance " + choice);
-        System.out.println();
-
-        return choice;
     }
 
     public int getScore()

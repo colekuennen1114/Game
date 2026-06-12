@@ -17,7 +17,11 @@ public class Match
             enemyScore = 0;
         }
 
-        int playerScore = 0;
+        int playerBase = myRobot.getScore()
+            + myTeam[0].getAvgScore()
+            + myTeam[1].getAvgScore();
+
+        int playerScore = variedScore(playerBase);
 
         System.out.println("================================");
         System.out.println("           MATCH START          ");
@@ -29,11 +33,12 @@ public class Match
             System.out.println("  " + b.getName() + " (" + b.getNumber() + ")  avg: " + b.getAvgScore() + " pts");
         }
 
-        System.out.println("Enemy match score: ~" + enemyScore + " pts");
+        System.out.println("Enemy starting score: " + enemyScore + " pts");
         System.out.println();
-        System.out.println("Your robot output: " + myRobot.getScore() + " pts");
+        System.out.println("Your robot contribution: " + myRobot.getScore() + " pts");
         System.out.println("Teammates:  " + myTeam[0].getName() + " (" + myTeam[0].getAvgScore() + " pts avg)"
             + "  |  " + myTeam[1].getName() + " (" + myTeam[1].getAvgScore() + " pts avg)");
+        System.out.println("Your alliance starting score: " + playerScore + " pts");
         System.out.println();
 
         for (int round = 1; round <= ROUNDS; round++)
@@ -48,17 +53,7 @@ public class Match
             System.out.println("4: INTAKE  - Collect pieces   (safe, low guaranteed reward)");
             System.out.println();
 
-            int choice = -1;
-
-            while (choice < 1 || choice > 4)
-            {
-                choice = scan.nextInt();
-
-                if (choice < 1 || choice > 4)
-                {
-                    System.out.println("Invalid. Enter 1-4:");
-                }
-            }
+            int choice = Input.readInt(scan, 1, 4, "Enter action (1-4):");
 
             System.out.println();
 
@@ -103,6 +98,13 @@ public class Match
         return playerScore > enemyScore;
     }
 
+    private static int variedScore(int baseScore)
+    {
+        int variation = Math.max(15, (int)(baseScore * 0.08));
+        int score = baseScore + (int)(Math.random() * (variation * 2 + 1)) - variation;
+        return Math.max(0, score);
+    }
+
     private static int shoot(int currentScore, Builder myRobot)
     {
         int shooterScore = myRobot.getShooter().getAddScore();
@@ -111,8 +113,8 @@ public class Match
 
         if (Math.random() > missChance)
         {
-            int min  = (int)(shooterScore * 0.50);
-            int max  = (int)(shooterScore * 1.00);
+            int min  = (int)(shooterScore * 0.15);
+            int max  = (int)(shooterScore * 0.30);
             int gain = min + (int)(Math.random() * (max - min + 1));
 
             currentScore += gain;
@@ -131,8 +133,8 @@ public class Match
     {
         int avgTeamScore = (myTeam[0].getAvgScore() + myTeam[1].getAvgScore()) / 2;
 
-        int min  = (int)(avgTeamScore * 0.18);
-        int max  = (int)(avgTeamScore * 0.28);
+        int min  = (int)(avgTeamScore * 0.08);
+        int max  = (int)(avgTeamScore * 0.16);
         int gain = min + (int)(Math.random() * (max - min + 1));
 
         currentScore += gain;
@@ -146,8 +148,8 @@ public class Match
     {
         if (Math.random() < 0.60)
         {
-            int min = (int)(enemyBase * 0.08);
-            int max = (int)(enemyBase * 0.14);
+            int min = (int)(enemyBase * 0.04);
+            int max = (int)(enemyBase * 0.08);
             int reduction = min + (int)(Math.random() * (max - min + 1));
 
             enemyScore -= reduction;
@@ -178,8 +180,8 @@ public class Match
         double speedBonus = myRobot.getIntake().getSpeed()
             * myRobot.getHopper().getSpeed();
 
-        int min = (int)(indexerScore * 0.30 * speedBonus);
-        int max = (int)(indexerScore * 0.55 * speedBonus);
+        int min = (int)(indexerScore * 0.12 * speedBonus);
+        int max = (int)(indexerScore * 0.24 * speedBonus);
         int gain = min + (int)(Math.random() * (max - min + 1));
 
         currentScore += gain;
