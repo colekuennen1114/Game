@@ -1,4 +1,6 @@
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MyClass
 {
@@ -80,51 +82,54 @@ public class MyClass
     {
         Bot[] board = new Bot[5];
 
-        int minIndex = getMinIndexForAlliance(allianceNumber);
-        int maxIndex = getMaxIndexForAlliance(allianceNumber);
+        int minScore = getMinScoreForAlliance(allianceNumber);
+        int maxScore = getMaxScoreForAlliance(allianceNumber);
+        List<Bot> eligible = new ArrayList<Bot>();
 
-        int count = 0;
-
-        while (count < board.length)
+        for (Bot bot : bots)
         {
-            int randomIndex = minIndex + (int)(Math.random() * (maxIndex - minIndex + 1));
-            Bot selected = bots[randomIndex];
-
-            if (!alreadyOnBoard(board, selected, count) && selected != alreadyPicked)
+            if (bot != alreadyPicked
+                && bot.getAvgScore() >= minScore
+                && bot.getAvgScore() <= maxScore)
             {
-                board[count] = selected;
-                count++;
+                eligible.add(bot);
             }
+        }
+
+        for (int i = 0; i < board.length; i++)
+        {
+            int randomIndex = (int)(Math.random() * eligible.size());
+            board[i] = eligible.remove(randomIndex);
         }
 
         return board;
     }
 
-    private static int getMinIndexForAlliance(int allianceNumber)
+    private static int getMinScoreForAlliance(int allianceNumber)
     {
         if (allianceNumber == 1)
         {
-            return 0;
+            return 180;
         }
         else if (allianceNumber == 2)
         {
-            return 5;
+            return 160;
         }
         else if (allianceNumber == 3)
         {
-            return 10;
+            return 140;
         }
         else if (allianceNumber == 4)
         {
-            return 15;
+            return 120;
         }
         else if (allianceNumber == 5)
         {
-            return 22;
+            return 100;
         }
         else if (allianceNumber == 6)
         {
-            return 30;
+            return 75;
         }
         else if (allianceNumber == 7)
         {
@@ -132,53 +137,44 @@ public class MyClass
         }
         else
         {
-            return 50;
+            return 0;
         }
     }
 
-    private static int getMaxIndexForAlliance(int allianceNumber)
+    private static int getMaxScoreForAlliance(int allianceNumber)
     {
         if (allianceNumber == 1)
         {
-            return 24;
+            return Integer.MAX_VALUE;
         }
         else if (allianceNumber == 2)
         {
-            return 30;
+            return 240;
         }
         else if (allianceNumber == 3)
         {
-            return 38;
+            return 220;
         }
         else if (allianceNumber == 4)
         {
-            return 45;
+            return 200;
         }
         else if (allianceNumber == 5)
         {
-            return 55;
+            return 180;
         }
         else if (allianceNumber == 6)
         {
-            return 65;
+            return 155;
+        }
+        else if (allianceNumber == 7)
+        {
+            return 130;
         }
         else
         {
-            return 74;
+            return 110;
         }
-    }
-
-    private static boolean alreadyOnBoard(Bot[] board, Bot bot, int filledSpots)
-    {
-        for (int i = 0; i < filledSpots; i++)
-        {
-            if (board[i] == bot)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static void printBoard(Bot[] board)
@@ -196,19 +192,8 @@ public class MyClass
 
     private static int chooseFromBoard(Scanner scan, Bot[] board)
     {
-        int choice = -1;
-
-        while (choice < 0 || choice >= board.length)
-        {
-            choice = scan.nextInt();
-
-            if (choice < 0 || choice >= board.length)
-            {
-                System.out.println("Invalid choice. Enter 0-" + (board.length - 1) + ":");
-            }
-        }
-
-        return choice;
+        return Input.readInt(scan, 0, board.length - 1,
+            "Enter bot choice (0-" + (board.length - 1) + "):");
     }
 
     public static void main(String args[])
@@ -222,8 +207,6 @@ public class MyClass
 
         // Phase 2: Pick 2 alliance partners
         Bot[] alliance = myAlliance(scan, bots, myRobot.getAlliance());
-
-        System.out.println("DEBUG: Alliance selection finished. Starting bracket...");
 
         // Alliance summary
         int totalAvgScore = myRobot.getScore()
