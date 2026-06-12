@@ -216,10 +216,10 @@ public class MyClass
         System.out.println("================================");
         System.out.println("        ALLIANCE SUMMARY        ");
         System.out.println("================================");
-        System.out.println("Your robot score:   " + myRobot.getScore()        + " pts");
+        System.out.println("Robot rating:       " + myRobot.getScore());
         System.out.println("Teammate 1 score:   " + alliance[0].getAvgScore() + " pts");
         System.out.println("Teammate 2 score:   " + alliance[1].getAvgScore() + " pts");
-        System.out.println("Total alliance avg: " + totalAvgScore             + " pts");
+        System.out.println("Total alliance rating: " + totalAvgScore);
         System.out.println("Alliance number:    Alliance " + myRobot.getAlliance());
         System.out.println("================================\n");
 

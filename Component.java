@@ -5,15 +5,13 @@ public class Component
         private int cost;
         private double speed;
         private int addScore;
-        private boolean defense;
-    public Component(String cat, String ty, int c, double s, int aS, boolean d)
+    public Component(String cat, String ty, int c, double s, int aS)
         {
          category = cat;
          type = ty;
          cost = c;
          speed = s;
          addScore = aS;
-         defense = d;
         }
         
         public String getCategory()
@@ -41,8 +39,4 @@ public class Component
             return addScore;
         }
         
-        public boolean getDefense()
-        {
-            return defense;
-        }
     }
