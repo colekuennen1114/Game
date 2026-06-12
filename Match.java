@@ -17,11 +17,7 @@ public class Match
             enemyScore = 0;
         }
 
-        int playerBase = myRobot.getScore()
-            + myTeam[0].getAvgScore()
-            + myTeam[1].getAvgScore();
-
-        int playerScore = variedScore(playerBase);
+        int playerScore = 0;
 
         System.out.println("================================");
         System.out.println("           MATCH START          ");
@@ -35,10 +31,10 @@ public class Match
 
         System.out.println("Enemy starting score: " + enemyScore + " pts");
         System.out.println();
-        System.out.println("Your robot contribution: " + myRobot.getScore() + " pts");
+        System.out.println("Your robot performance rating: " + myRobot.getScore());
         System.out.println("Teammates:  " + myTeam[0].getName() + " (" + myTeam[0].getAvgScore() + " pts avg)"
             + "  |  " + myTeam[1].getName() + " (" + myTeam[1].getAvgScore() + " pts avg)");
-        System.out.println("Your alliance starting score: " + playerScore + " pts");
+        System.out.println("Your alliance starts at 0 points.");
         System.out.println();
 
         for (int round = 1; round <= ROUNDS; round++)
@@ -98,23 +94,17 @@ public class Match
         return playerScore > enemyScore;
     }
 
-    private static int variedScore(int baseScore)
-    {
-        int variation = Math.max(15, (int)(baseScore * 0.08));
-        int score = baseScore + (int)(Math.random() * (variation * 2 + 1)) - variation;
-        return Math.max(0, score);
-    }
-
     private static int shoot(int currentScore, Builder myRobot)
     {
         int shooterScore = myRobot.getShooter().getAddScore();
+        int robotRating = myRobot.getScore();
 
-        double missChance = myRobot.getShooter().getDefense() ? 0.35 : 0.20;
+        double missChance = 0.20;
 
         if (Math.random() > missChance)
         {
-            int min  = (int)(shooterScore * 0.15);
-            int max  = (int)(shooterScore * 0.30);
+            int min  = (int)(robotRating * 0.12 + shooterScore * 0.10);
+            int max  = (int)(robotRating * 0.20 + shooterScore * 0.20);
             int gain = min + (int)(Math.random() * (max - min + 1));
 
             currentScore += gain;
@@ -180,8 +170,10 @@ public class Match
         double speedBonus = myRobot.getIntake().getSpeed()
             * myRobot.getHopper().getSpeed();
 
-        int min = (int)(indexerScore * 0.12 * speedBonus);
-        int max = (int)(indexerScore * 0.24 * speedBonus);
+        int intakeScore = myRobot.getIntake().getAddScore();
+        int collectionPower = indexerScore + intakeScore;
+        int min = (int)(collectionPower * 0.18 * speedBonus);
+        int max = (int)(collectionPower * 0.32 * speedBonus);
         int gain = min + (int)(Math.random() * (max - min + 1));
 
         currentScore += gain;

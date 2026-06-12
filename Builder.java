@@ -78,7 +78,6 @@ public class Builder
                 + " | Cost: $" + c.getCost()
                 + " | Score: +" + c.getAddScore()
                 + " | Speed: x" + c.getSpeed()
-                + " | Defense: " + c.getDefense()
                 + tag);
         }
 
@@ -220,7 +219,7 @@ public class Builder
         System.out.println("Indexer:   " + indexer.getType()  + "  (+" + indexer.getAddScore()  + " pts)");
         System.out.println("Hopper:    " + hopper.getType()   + "  (x"  + hopper.getSpeed()   + " speed)");
         System.out.println("Alliance:  Alliance " + alliance);
-        System.out.println("Est. score per match: " + getScore() + " pts");
+        System.out.println("Robot performance rating: " + getScore());
         System.out.println("================================");
     }
 
